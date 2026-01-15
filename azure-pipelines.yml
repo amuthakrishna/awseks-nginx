@@ -5,30 +5,29 @@ pool:
   name: 'Default'
 
 variables:
-  dockerImageName: 'krishnamoorthy1/demo-app'
-  tag: '$(Build.BuildId)'
+ - group: docker-credentials
+ - group: docker-image
+ - name: IMAGE_TAG
+   value: $(Build.BuildId) 
+stages:
+  - stage: DockerLogin
+    displayName: Docker Login
+    jobs:
+      - job: DockerLogin
+        steps:
+          - script: |
+              echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
+            displayName: 'Docker Login'
 
-steps:
-- task: Docker@2
-  inputs:
-    containerRegistry: 'docker-hub'
-    command: 'login'
-
-- task: Docker@2
-  inputs:
-    containerRegistry: 'docker-hub'
-    command: 'build'
-    repository: $(dockerImageName)
-    Dockerfile: '**/Dockerfile'
-    tags: |
-      $(tag)
-      latest
-
-- task: Docker@2
-  inputs:
-    containerRegistry: 'docker-hub'
-    command: 'push'
-    repository: $(dockerImageName)
-    tags: |
-      $(tag)
-      latest
+  - stage: BuildPush
+    displayName: Build and Push Docker Image
+    dependsOn: DockerLogin
+    jobs:
+      - job: DockerBuildPush
+        steps:
+          - script: |
+              echo "Building image..."
+              docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
+              docker push $(IMAGE_NAME):$(IMAGE_TAG)
+            displayName: 'Build and Push Image'
+            
