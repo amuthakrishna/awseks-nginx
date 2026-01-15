@@ -5,50 +5,50 @@ pool:
   name: 'Default'
 
 variables:
- - group: docker-credentials
- - group: docker-image
- - name: IMAGE_TAG
-   value: $(Build.BuildId) 
--  group: cd-credentials
-   
+  - group: docker-credentials
+  - group: docker-image
+  - group: cd-credentials
+  - name: IMAGE_TAG
+    value: $(Build.BuildId)
+
 stages:
-  - stage: DockerLogin
-    displayName: Docker Login
-    jobs:
-      - job: DockerLogin
-        steps:
-          - script: |
-              echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
-            displayName: 'Docker Login'
+- stage: DockerLogin
+  displayName: Docker Login
+  jobs:
+  - job: DockerLogin
+    steps:
+    - script: |
+        echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
+      displayName: 'Docker Login'
 
-  - stage: BuildPush
-    displayName: Build and Push Docker Image
-    dependsOn: DockerLogin
-    jobs:
-      - job: DockerBuildPush
-        steps:
-          - script: |
-              echo "Building image..."
-              docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
-              docker push $(IMAGE_NAME):$(IMAGE_TAG)
-            displayName: 'Build and Push Image'
-            
-  - stage: UpdateHelm
-    displayName: Update Helm Values in CD Repo
-    dependsOn: BuildPush
-    jobs:
-    - job: UpdateHelmValues
-      steps:
-        - script: |
-            git clone https://$(GITHUB_TOKEN)@github.com/amuthakrishna/awseks-nginx-cd.git
-            cd awseks-nginx-cd
-  
-            echo "Updating image tag in Helm values..."
-            sed -i 's/tag:.*/tag: "$(IMAGE_TAG)"/' values.yaml
+- stage: BuildPush
+  displayName: Build and Push Docker Image
+  dependsOn: DockerLogin
+  jobs:
+  - job: DockerBuildPush
+    steps:
+    - script: |
+        echo "Building image..."
+        docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
+        docker push $(IMAGE_NAME):$(IMAGE_TAG)
+      displayName: 'Build and Push Image'
 
-            git config user.email "amuthakrishna1988@gmail.com"
-            git config user.name "amutha"
-            git add values.yaml
-            git commit -m "Update image tag to $(IMAGE_TAG)"
-            git push origin main
-          displayName: Update Helm values.yaml
+- stage: UpdateHelm
+  displayName: Update Helm Values in CD Repo
+  dependsOn: BuildPush
+  jobs:
+  - job: UpdateHelmValues
+    steps:
+    - script: |
+        git clone https://$(GITHUB_TOKEN)@github.com/amuthakrishna/awseks-nginx-cd.git
+        cd awseks-nginx-cd
+
+        echo "Updating image tag in Helm values..."
+        sed -i 's/tag:.*/tag: "$(IMAGE_TAG)"/' values.yaml
+
+        git config user.email "amuthakrishna1988@gmail.com"
+        git config user.name "amutha"
+        git add values.yaml
+        git commit -m "Update image tag to $(IMAGE_TAG)"
+        git push origin main
+      displayName: Update Helm values.yaml
