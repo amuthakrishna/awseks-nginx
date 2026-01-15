@@ -33,22 +33,22 @@ stages:
               docker push $(IMAGE_NAME):$(IMAGE_TAG)
             displayName: 'Build and Push Image'
             
-- stage: UpdateHelm
-  displayName: Update Helm Values in CD Repo
-  dependsOn: BuildPush
-  jobs:
-  - job: UpdateHelmValues
-    steps:
-    - script: |
-        git clone https://$(GITHUB_TOKEN)@github.com/amuthakrishna/awseks-nginx-cd.git
-        cd awseks-nginx-cd
+  - stage: UpdateHelm
+    displayName: Update Helm Values in CD Repo
+    dependsOn: BuildPush
+    jobs:
+    - job: UpdateHelmValues
+      steps:
+      - script: |
+          git clone https://$(GITHUB_TOKEN)@github.com/amuthakrishna/awseks-nginx-cd.git
+          cd awseks-nginx-cd
 
-        echo "Updating image tag in Helm values..."
-        sed -i 's/tag:.*/tag: "$(IMAGE_TAG)"/' values.yaml
+          echo "Updating image tag in Helm values..."
+          sed -i 's/tag:.*/tag: "$(IMAGE_TAG)"/' values.yaml
 
-        git config user.email "amuthakrishna1988@gmail.com"
-        git config user.name "amutha"
-        git add values.yaml
-        git commit -m "Update image tag to $(IMAGE_TAG)"
-        git push origin main
-      displayName: Update Helm values.yaml
+          git config user.email "amuthakrishna1988@gmail.com"
+          git config user.name "amutha"
+          git add values.yaml
+          git commit -m "Update image tag to $(IMAGE_TAG)"
+          git push origin main
+        displayName: Update Helm values.yaml
