@@ -43,12 +43,14 @@ stages:
         git clone https://$(GITHUB_TOKEN)@github.com/amuthakrishna/awseks-nginx-cd.git
         cd awseks-nginx-cd
         git checkout prod
+
         echo "Updating image tag in Helm values..."
-        sed -i 's|tag:.*|tag: "'$(IMAGE_TAG)'"|' nginx/values.yaml
+        sed -i '/app:/,/tag:/ s|tag:.*|tag: "'$(IMAGE_TAG)'"|' nginx/values.yaml
 
         git config user.email "amuthakrishna1988@gmail.com"
         git config user.name "amutha"
-        git add values.yaml
+
+        git add nginx/values.yaml
         git commit -m "Update image tag to $(IMAGE_TAG)"
         git push origin prod
       displayName: Update Helm values.yaml
