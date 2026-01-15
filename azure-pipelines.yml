@@ -9,6 +9,7 @@ variables:
  - group: docker-image
  - name: IMAGE_TAG
    value: $(Build.BuildId) 
+   
 stages:
   - stage: DockerLogin
     displayName: Docker Login
