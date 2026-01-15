@@ -4,6 +4,10 @@ trigger:
 pool:
   name: 'Default'
 
+variables:
+  dockerImageName: 'krishnamoorthy1/demo-app'
+  tag: '$(Build.BuildId)'
+
 steps:
 - task: Docker@2
   inputs:
@@ -14,9 +18,17 @@ steps:
   inputs:
     containerRegistry: 'docker-hub'
     command: 'build'
+    repository: $(dockerImageName)
     Dockerfile: '**/Dockerfile'
+    tags: |
+      $(tag)
+      latest
 
 - task: Docker@2
   inputs:
     containerRegistry: 'docker-hub'
     command: 'push'
+    repository: $(dockerImageName)
+    tags: |
+      $(tag)
+      latest
