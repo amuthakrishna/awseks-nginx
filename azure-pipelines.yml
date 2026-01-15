@@ -1,0 +1,22 @@
+trigger:
+- prod
+
+pool:
+  name: 'Default'
+
+steps:
+- task: Docker@2
+  inputs:
+    containerRegistry: 'docker-hub'
+    command: 'login'
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'docker-hub'
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'docker-hub'
+    command: 'push'
